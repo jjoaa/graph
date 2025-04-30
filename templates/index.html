@@ -18,19 +18,20 @@
     </div>
 
      <!-- 🔹 연령대별 통계: 연도별 버튼 선택 -->
-<h3>연령대별 성별 환자수 및 처방량</h2>
-<form method="POST" action="/">
-    <button type="submit" name="year" value="2019">2019</button>
-    <button type="submit" name="year" value="2020">2020</button>
-    <button type="submit" name="year" value="2021">2021</button>
-    <button type="submit" name="year" value="2022">2022</button>
-    <button type="submit" name="year" value="2023">2023</button>
-</form>
+     <div id="plotly-container">      
+        <h3>연령대별 성별 환자수 및 처방량</h2>
+        <form method="POST" action="/">
+            <button type="submit" name="year" value="2019">2019</button>
+            <button type="submit" name="year" value="2020">2020</button>
+            <button type="submit" name="year" value="2021">2021</button>
+            <button type="submit" name="year" value="2022">2022</button>
+            <button type="submit" name="year" value="2023">2023</button>
+        </form>
 
-{% if plot_img_path %}
-    <img src="{{ url_for('static', filename=plot_img_path) }}" alt="{{ year }}년 연령대별 그래프">
-{% endif %}
-
+        {% if plot_img_path %}
+            <img src="{{ url_for('static', filename=plot_img_path) }}" alt="{{ year }}년 연령대별 그래프">
+        {% endif %}
+    </div>
     <!-- 선택 시 축 재조정 / 클릭 시 상세 페이지 이동 -->
     <script>
         var plot = document.getElementsByClassName('plotly-graph-div')[0];
@@ -87,6 +88,5 @@
             });
         }
     </script>
-
 </body>
 </html>
