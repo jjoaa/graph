@@ -8,6 +8,9 @@
  - 어느 연령대가 의료용 마약류를 가장 많이 처방 받았는지
  - 각 효능별로 어떤 성분이 많이 처방되는지 
 
+**Live Demo (배포된 웹 사이트)**
+https://graph-cz27.onrender.com/
+
 <br /> <br />
 ![Image](https://github.com/user-attachments/assets/48c7f579-4990-4bfc-a87a-31420fc91822)
 <br /> <br />
