@@ -17,7 +17,6 @@ target_categories = [
     "식욕억제제", "진해제", "항뇌전증제", "ADHD치료제", "항우울제"
 ]
 
-
 # 🔹 메인 페이지: 막대그래프
 @app.route('/')
 def index():
@@ -27,7 +26,6 @@ def index():
     df_summary[years] = df_summary[years].replace('-', 0).astype(float)
     summary = df_summary.groupby('효능및성분별(1)')[years].sum().reset_index()
 
-    # 막대그래프 생성
     fig = go.Figure()
     for _, row in summary.iterrows():
         fig.add_trace(go.Bar(
@@ -56,97 +54,65 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib as mpl
 from matplotlib.ticker import MaxNLocator, FuncFormatter
+
 # 🔹 연령별 분석: 나이 그래프
 @app.route('/', methods=["GET", "POST"])
 def age():
-    # 기본값으로 '2023'년을 설정
+   
     year = request.form.get('year', '2023')  
-
-    # 이미지 경로 초기화
     plot_img_path = None
 
     if year:
-        # 선택한 연도에 맞는 그래프 이미지를 생성하고, 그 경로를 반환
-        plot_img_path = generate_plot_for_year(year)
-
-    # HTML 템플릿에 이미지 경로와 선택된 연도 전달
-    return render_template('index.html', plot_img_path=plot_img_path, year=year)
+      plot_img_path = generate_plot_for_year(year)
+     return render_template('index.html', plot_img_path=plot_img_path, year=year)
 
 def generate_plot_for_year(year):
     plt.rcParams['font.family'] = 'Malgun Gothic'
     plt.rcParams['axes.unicode_minus'] = False 
     
-    # CSV 파일 불러오기 및 데이터 처리
     file_path = '7 환자_연령대별_의료용_마약류_처방_현황.csv'
     df = pd.read_csv(file_path, encoding='cp949')
-
-    # 데이터 전처리
-    df_clean = df.drop(index=0)  # 첫 번째 행 제거
-
-    # 해당 연도 컬럼 동적으로 선택
+    df_clean = df.drop(index=0)  
     df_year = df_clean[['성별(1)', '연령대별(1)', year, f'{year}.4']].copy()
-
-    # ✅ 소계 제거
     df_year = df_year[df_year['연령대별(1)'] != '소계']
-
-    # ✅ 숫자로 변환
     df_year[year] = pd.to_numeric(df_year[year].str.replace(',', '', regex=False), errors='coerce')
     df_year[f'{year}.4'] = pd.to_numeric(df_year[f'{year}.4'].str.replace(',', '', regex=False), errors='coerce')
-
-    # NaN 값 처리
     df_year[year] = df_year[year].fillna(0).astype(int)
     df_year[f'{year}.4'] = df_year[f'{year}.4'].fillna(0).astype(int)
-
-    # ✅ 남/여 데이터 분리
     male_data = df_year[df_year['성별(1)'] == '남자']
     female_data = df_year[df_year['성별(1)'] == '여자']
-
-    # ✅ 연령대 순서
     age_order = male_data['연령대별(1)'].tolist()
-
     male_data = male_data.set_index('연령대별(1)').loc[age_order]
     female_data = female_data.set_index('연령대별(1)').loc[age_order]
-
-    # ✅ 그래프 그리기
+    
     x = range(len(age_order))
     bar_width = 0.2
-
     fig, ax1 = plt.subplots(figsize=(16, 8))
     ax2 = ax1.twinx()  # 오른쪽 y축
-
-    # 🎯 환자수 (왼쪽 y축에 막대)
     ax1.bar([i - 1.5*bar_width for i in x], male_data[year], width=bar_width, label=f'남자 환자수 ', color='skyblue')
     ax1.bar([i + 0.5*bar_width for i in x], female_data[year], width=bar_width, label=f'여자 환자수 ', color='lightpink')
     ax1.set_ylabel('환자수 (명)')
     ax1.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f'{int(x):,}'))
 
-    # 🎯 처방량 (오른쪽 y축에 막대)
     ax2.bar([i - 0.5*bar_width for i in x], male_data[f'{year}.4'], width=bar_width, label=f'남자 처방량 ', color='green', alpha=0.7)
     ax2.bar([i + 1.5*bar_width for i in x], female_data[f'{year}.4'], width=bar_width, label=f'여자 처방량', color='orange', alpha=0.7)
     ax2.set_ylabel('처방량 (개/정)')
     ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f'{x/1e8:.2f}억'))
-
-    # 🎯 나머지 설정
     ax1.set_xticks(x)
     ax1.set_xticklabels(age_order, rotation=45)
     ax1.set_xlabel('연령대')
     ax1.grid(axis='y', linestyle='--', alpha=0.5)
 
-    # 🎯 범례 합치기
     lines_1, labels_1 = ax1.get_legend_handles_labels()
     lines_2, labels_2 = ax2.get_legend_handles_labels()
     ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left')
 
     plt.title(f'{year}년 연령대별 성별 의료용 마약류 환자수 및 처방량', fontsize=18)
     plt.tight_layout()
-
-    # 그래프를 저장하기
-    plt.savefig(f'static/age_plot_{year}.png')  # 이미지 저장
-    plt.close()  # 그래프를 닫아서 메모리 관리
-
-    # 저장된 이미지 파일 경로 반환
+    plt.savefig(f'static/age_plot_{year}.png') 
+    plt.close() 
     return f'age_plot_{year}.png'
 
 
