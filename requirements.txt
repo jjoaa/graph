@@ -27,7 +27,7 @@ matplotlib-inline==0.1.7
 narwhals==1.36.0
 nest-asyncio==1.6.0
 numpy
-opencv-python==4.11.0.86
+opencv-python  # 버전명 제거
 packaging==25.0
 pandas==2.2.3
 parso==0.8.4
