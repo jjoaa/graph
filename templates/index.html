@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>의료용 마약류 통계 대시보드</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+
+    <h2><a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">의료용 마약류 통계 대시보드</a></h1>
+
+
+    <!-- 🔹 연도별 효능별 처방량 Plotly 그래프 -->
+    <div id="plotly-container">
+        <h3><a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">연도별 효능별 처방량</a></h2>
+        {{ plot_html|safe }}
+    </div>
+
+     <!-- 🔹 연령대별 통계: 연도별 버튼 선택 -->
+<h3>연령대별 성별 환자수 및 처방량</h2>
+<form method="POST" action="/">
+    <button type="submit" name="year" value="2019">2019</button>
+    <button type="submit" name="year" value="2020">2020</button>
+    <button type="submit" name="year" value="2021">2021</button>
+    <button type="submit" name="year" value="2022">2022</button>
+    <button type="submit" name="year" value="2023">2023</button>
+</form>
+
+{% if plot_img_path %}
+    <img src="{{ url_for('static', filename=plot_img_path) }}" alt="{{ year }}년 연령대별 그래프">
+{% endif %}
+
+    <!-- 선택 시 축 재조정 / 클릭 시 상세 페이지 이동 -->
+    <script>
+        var plot = document.getElementsByClassName('plotly-graph-div')[0];
+
+        if (plot) {
+            plot.on('plotly_restyle', function(eventData) {
+                const data = plot.data;
+                const visibility = eventData[0].visible;
+                let selectedNames = [];
+
+                for (let i = 0; i < data.length; i++) {
+                    const vis = Array.isArray(visibility) ? visibility[i] : visibility;
+                    if (vis === true || (vis === undefined && data[i].visible !== 'legendonly')) {
+                        selectedNames.push(data[i].name);
+                    }
+                }
+
+                let update = {};
+
+                if (selectedNames.length === 1) {
+                    const targetTrace = data.find(trace => trace.name === selectedNames[0]);
+                    const maxY = Math.max(...targetTrace.y);
+                    const maxInHundredMillions = Math.ceil(maxY / 1e8);
+                    let tickvals = [], ticktext = [];
+                    for (let i = 0; i <= maxInHundredMillions; i++) {
+                        tickvals.push(i * 1e8);
+                        ticktext.push(`${i}억`);
+                    }
+
+                    update = {
+                        'yaxis.tickmode': 'array',
+                        'yaxis.tickvals': tickvals,
+                        'yaxis.ticktext': ticktext,
+                        'yaxis.tickformat': ',.0f'
+                    };
+                } else {
+                    update = {
+                        'yaxis.tickmode': 'array',
+                        'yaxis.tickvals': [0, 1e9, 2e9, 3e9],
+                        'yaxis.ticktext': ['0억', '10억', '20억', '30억'],
+                        'yaxis.tickformat': ',.0f'
+                    };
+                }
+
+                Plotly.relayout(plot, update);
+            });
+
+            plot.on('plotly_click', function(data) {
+                const point = data.points[0];
+                const year = point.x.split('.')[0];
+                const ingredient = point.data.name;
+                const url = `/pie_chart?year=${year}&ingredient=${encodeURIComponent(ingredient)}`;
+                window.location.href = url;
+            });
+        }
+    </script>
+
+</body>
+</html>
