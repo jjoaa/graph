@@ -153,7 +153,8 @@ def test():
 def get_scatter_data():
     year = request.args.get('year')
     category = request.args.get('category')
-
+    
+    # CSV 이중 헤더 처리
     df_multi = pd.read_csv(file_path, header=[0, 1], encoding='cp949')
     df_multi.columns = ['_'.join(col).strip() for col in df_multi.columns.values]
 
